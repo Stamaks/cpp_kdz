@@ -27,6 +27,8 @@ iostream
 -
 fstream
 -
+ctime
+-
 FlowNetwork.cpp
 /home/st-mks/CLionProjects/kdz/FlowNetwork.cpp
 DataReader.cpp
