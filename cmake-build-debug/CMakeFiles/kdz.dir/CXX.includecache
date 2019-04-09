@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/st-mks/CLionProjects/kdz/DataReader.cpp
+iostream
+-
+fstream
+-
+vector
+-
+
+/home/st-mks/CLionProjects/kdz/Edge.cpp
+
+/home/st-mks/CLionProjects/kdz/FlowNetwork.cpp
+Edge.cpp
+/home/st-mks/CLionProjects/kdz/Edge.cpp
+vector
+-
+
+/home/st-mks/CLionProjects/kdz/main.cpp
+iostream
+-
+fstream
+-
+FlowNetwork.cpp
+/home/st-mks/CLionProjects/kdz/FlowNetwork.cpp
+DataReader.cpp
+/home/st-mks/CLionProjects/kdz/DataReader.cpp
+
