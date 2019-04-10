@@ -1,12 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <queue>
+#include <set>
 
 class DataReader {
 
 private:
 
-    std::fstream fin;
+    fstream fin;
 
 public:
     int number_of_vertexes;
@@ -15,50 +17,88 @@ public:
         fin.close();
     }
 
-    DataReader(std::string filename, std::string alg_name = "") {
-        fin.open(filename, std::ios::in);
+    DataReader(string filename, string alg_name = "") {
+        fin.open(filename, ios::in);
 
         unsigned long start = filename.find('_');
         unsigned long end = filename.find('_', start + 1);
 
-        number_of_vertexes = std::stoi(filename.substr(start + 1, end - (start + 1)));
+        number_of_vertexes = stoi(filename.substr(start + 1, end - (start + 1)));
 
-        std::cout << "Начинаю тест алгоритма " << alg_name << " на " << number_of_vertexes << " вершин.\n";
+        cout << "Начинаю тест алгоритма " << alg_name << " на " << number_of_vertexes << " вершин.\n";
     }
 
-    void read(std::vector<std::vector<int>>& flows, int& source, int& sink)
+    int bfs(int s, vector<int>& visited, vector<vector<int>>& flows, set<int>& sinks){
+
+        queue<int> queue;
+
+        visited[s] = true;
+        queue.push(s);
+
+        while(!queue.empty())
+        {
+            s = queue.front();
+            queue.pop();
+
+            for (int i = 0; i < number_of_vertexes; ++i)
+            {
+                if (!visited[i] && flows[s][i])
+                {
+                    visited[i] = 1;
+
+                    if (sinks.count(i))
+                        return i;
+
+                    queue.push(i);
+                }
+            }
+        }
+    }
+
+    void read(vector<vector<int>>& flows, vector<pair<int, int>>& source_sink)
     {
         if (!fin.is_open())
-            throw std::ios_base::failure("file not open");
+            throw ios_base::failure("file not open");
 
-        std::vector<int> not_sink(number_of_vertexes);
-
-        std::string s;
+        string s;
         int cur;
-        bool is_source;
+        bool is_sink;
+        set<int> sinks;
+        set<int> sources;
+
+        for (int i = 0; i < number_of_vertexes; ++i)
+            sources.insert(i);
+
         for (int i = 0; i < number_of_vertexes; ++i)
         {
-            std::vector<int>* vec = new std::vector<int>();
+            vector<int>* vec = new vector<int>();
 
-            is_source = true;
+            is_sink = true;
             for (int j = 0; j < number_of_vertexes; ++j)
             {
                 fin >> cur;
                 if (cur != 0) {
-                    is_source = false;
-                    not_sink[j] = 1;
+                    is_sink = false;
+                    sources.erase(j);
                 }
                 vec->push_back(cur);
             }
 
-            if (is_source)
-                source = i;
+            if (is_sink)
+                sinks.insert(i);
 
             flows.push_back(*vec);
         }
 
-        for (int i = 0; i < not_sink.size(); ++i)
-            if (!not_sink[i])
-                sink = i;
+        vector<int> visited(number_of_vertexes);
+        int cur_sink;
+        for (int i = 0; i < number_of_vertexes; ++i)
+        {
+            if (sources.count(i))
+            {
+                cur_sink = bfs(i, visited, flows, sinks);
+                source_sink.push_back(make_pair(i, cur_sink));
+            }
+        }
     }
 };
