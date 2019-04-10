@@ -18,14 +18,6 @@ queue
 set
 -
 
-/home/st-mks/CLionProjects/kdz/Edge.cpp
-
-/home/st-mks/CLionProjects/kdz/FlowNetwork.cpp
-Edge.cpp
-/home/st-mks/CLionProjects/kdz/Edge.cpp
-vector
--
-
 /home/st-mks/CLionProjects/kdz/main.cpp
 iostream
 -
@@ -33,8 +25,6 @@ fstream
 -
 ctime
 -
-FlowNetwork.cpp
-/home/st-mks/CLionProjects/kdz/FlowNetwork.cpp
 DataReader.cpp
 /home/st-mks/CLionProjects/kdz/DataReader.cpp
 

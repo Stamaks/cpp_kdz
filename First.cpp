@@ -8,64 +8,48 @@ using namespace std;
 vector<vector<int>> cur_flows;
 vector<bool> visited;
 
-bool bfs(int source, int sink, vector<int>& parent)
+int dfs(int current, int sink, int flow)
 {
-    for (int i = 0; i < visited.size(); ++i)
-        visited[i] = false;
+    if (current == sink)
+        return flow;
 
-    queue<int> q;
-    q.push(source);
-    visited[source] = true;
-    parent[source] = -1;
-
-    while (!q.empty())
+    visited[current] = true;
+    for (int i = 0; i < cur_flows[current].size(); ++i)
     {
-        int current = q.front();
-        q.pop();
-
-        for (int i = 0; i < cur_flows.size(); ++i)
+        if (!visited[i] and cur_flows[current][i] > 0)
         {
-            if (!visited[i] && cur_flows[current][i] > 0)
+            int delta = dfs(i, sink, min(flow, cur_flows[current][i]));
+            if (delta > 0)
             {
-                q.push(i);
-                parent[i] = current;
-                visited[i] = true;
+                cur_flows[current][i] -= delta;
+                cur_flows[i][current] += delta;
+                return delta;
             }
         }
     }
 
-    return visited[sink];
+    return 0;
 }
 
-int maxFlow(int source, int sink)
-{
-    int current, i;
-
-    vector<int> parent(cur_flows.size());
-
+int maxFlow(vector<bool>& visited, int source, int sink) {
     int flow = 0;
+    int delta = dfs(source, sink, INT32_MAX);
+    while (delta > 0) {
+        flow += delta;
 
-    while (bfs(source, sink, parent))
-    {
-        int current_flow = INT32_MAX;
-        for (i = sink; i != source; i = parent[i])
-        {
-            current = parent[i];
-            current_flow = min(current_flow, cur_flows[current][i]);
+        for (int i = 0; i < cur_flows.size(); ++i) {
+            visited[i] = false;
         }
 
-        for (i = sink; i != source; i = parent[i])
-        {
-            current = parent[i];
-            cur_flows[current][i] -= current_flow;
-            cur_flows[i][current] += current_flow;
-        }
-
-        flow += current_flow;
+        delta = dfs(source, sink, INT32_MAX);
     }
 
     return flow;
 }
+
+
+
+
 
 int main() {
     DataReader* dr = new DataReader("../../kdzdata/input_910_0.0.txt", "Форда-Фалкерсона");
@@ -106,11 +90,12 @@ int main() {
         cur_source = source_sink[i].first;
         cur_sink = source_sink[i].second;
 
-        res += maxFlow(cur_source, cur_sink);
+        res += maxFlow(visited, cur_source, cur_sink);
     }
 
     double end_time = clock();
     double res_time = ((end_time - start_time) / CLOCKS_PER_SEC);
 
     cout << "Время работы: " << res_time << " s; ответ: " << res;
+
 }

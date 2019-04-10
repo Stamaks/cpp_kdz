@@ -4,6 +4,8 @@
 #include <queue>
 #include <set>
 
+using namespace std;
+
 class DataReader {
 
 private:
