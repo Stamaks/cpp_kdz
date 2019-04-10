@@ -6,41 +6,52 @@
 
 using namespace std;
 
-vector<vector<int>> flows;
 vector<vector<int>> cur_flows;
 vector<bool> visited;
-int source, sink;
 
-int dft(int current, int flow)
-{
+static int findPath(int current, int sink, int flow) {
     if (current == sink)
         return flow;
 
     visited[current] = true;
-    for (int i = 0; i < flows[current].size(); ++i)
-    {
-        if (!flows[current][i])
+    for (int i = 0; i < visited.size(); i++) {
+        if (!cur_flows[current][i])
             continue;
 
-        if (!visited[i] and cur_flows[current][i] < flows[current][i])
-        {
-            int delta = dft(i, min(flow, flows[current][i] - cur_flows[current][i]));
-            if (delta > 0)
-            {
-                cur_flows[current][i] += delta;
-                cur_flows[i][current] -= delta;
-                return delta;
+        for (int v = 0; v < visited.size(); v++)
+            if (!visited[v] && cur_flows[current][v] > 0) {
+                int delta = findPath(v, sink, min(flow, cur_flows[current][v]));
+                if (delta > 0) {
+                    cur_flows[current][v] -= delta;
+                    cur_flows[v][current] += delta;
+                    return delta;
+                }
             }
-        }
     }
 
     return 0;
+}
 
+int maxFlow(vector<bool>& visited, int source, int sink) {
+    int flow = 0;
+    int delta = findPath(source, sink, INT32_MAX);
+    while (delta > 0) {
+        flow += delta;
+
+        for (int i = 0; i < cur_flows.size(); ++i) {
+            visited[i] = false;
+        }
+
+        delta = findPath(source, sink, INT32_MAX);
+    }
+
+    return flow;
 }
 
 int main() {
-    DataReader* dr = new DataReader("../../kdzdata/input_10_disco.txt");
+    DataReader* dr = new DataReader("../../kdzdata/input_10_disco.txt", "Форда-Фалкерсона");
 
+    vector<vector<int>> flows;
     vector<pair<int, int>> source_sink;
     dr->read(flows, source_sink);
 
@@ -60,31 +71,23 @@ int main() {
     for (int i = 0; i < flows.size(); ++i)
     {
         vector<int> v(flows.size());
+        for (int j = 0; j < flows.size(); ++j)
+            v[j] = flows[i][j];
+
         cur_flows.push_back(v);
     }
 
     for (int i = 0; i < flows.size(); ++i)
-    {
         visited.push_back(false);
-    }
 
     double start_time = clock();
 
-
-    int res = 0, cur_source, cur_sink, cur;
+    int res = 0, cur_source, cur_sink;
     for (int i = 0; i < source_sink.size(); ++i) {
         cur_source = source_sink[i].first;
         cur_sink = source_sink[i].second;
-//        cur = dft(source, INT32_MAX);
-//        while (cur > 0) {
-//            res += cur;
-//
-//            for (int i = 0; i < flows.size(); ++i) {
-//                visited[i] = false;
-//            }
-//
-//            cur = dft(source, INT32_MAX);
-//        }
+
+        res += maxFlow(visited, cur_source, cur_sink);
     }
 
     double end_time = clock();
