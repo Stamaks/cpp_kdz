@@ -6,16 +6,18 @@
 using namespace std;
 
 vector<vector<int>> cur_flows;
-vector<int> dest;
+vector<bool> visited;
 
-bool bfs(int source, int sink)
+bool bfs(int source, int sink, vector<int>& parent)
 {
-    for (int i = 0; i < dest.size(); ++i)
-        dest[i] = INT32_MAX;
+    for (int i = 0; i < visited.size(); ++i)
+        visited[i] = false;
 
     queue<int> q;
     q.push(source);
-    dest[source] = 0;
+    visited[source] = true;
+    parent[source] = -1;
+
     while (!q.empty())
     {
         int current = q.front();
@@ -23,15 +25,16 @@ bool bfs(int source, int sink)
 
         for (int i = 0; i < cur_flows.size(); ++i)
         {
-            if (!dest[i] && cur_flows[current][i] > 0)
+            if (!visited[i] && cur_flows[current][i] > 0)
             {
                 q.push(i);
-                dest[i] = true;
+                parent[i] = current;
+                visited[i] = true;
             }
         }
     }
 
-    return dest[sink];
+    return visited[sink];
 }
 
 int maxFlow(int source, int sink)
@@ -94,7 +97,7 @@ int main() {
     }
 
     for (int i = 0; i < flows.size(); ++i)
-        dest.push_back(INT32_MAX);
+        visited.push_back(false);
 
     double start_time = clock();
 
