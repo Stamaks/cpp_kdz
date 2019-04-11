@@ -5,69 +5,59 @@
 
 using namespace std;
 
+vector<vector<int>> flows;
 vector<vector<int>> cur_flows;
-vector<int> dest;
+queue<pair <int, pair <int, int>>> block;
+vector<vector<int>> lay;
 
-bool bfs(int source, int sink)
-{
+bool bfs(vector<int>& q, vector<int>& dest, int source, int sink) {
+    int qh = 0, qt = 0;
+    q[qt++] = source;
     for (int i = 0; i < dest.size(); ++i)
-        dest[i] = INT32_MAX;
-
-    queue<int> q;
-    q.push(source);
+        dest[i] = -1;
     dest[source] = 0;
-    while (!q.empty())
-    {
-        int current = q.front();
-        q.pop();
-
-        for (int i = 0; i < cur_flows.size(); ++i)
-        {
-            if (!dest[i] && cur_flows[current][i] > 0)
-            {
-                q.push(i);
-                dest[i] = true;
+    while (qh < qt) {
+        int v = q[qh++];
+        for (int to=0; to<flows.size(); ++to)
+            if (dest[to] == -1 && cur_flows[v][to] < flows[v][to]) {
+                q[qt++] = to;
+                dest[to] = dest[v] + 1;
             }
-        }
     }
-
-    return dest[sink];
+    return dest[sink] != -1;
 }
 
-int maxFlow(int source, int sink)
-{
-    int current, i;
-
-    vector<int> parent(cur_flows.size());
-
-    int flow = 0;
-
-    while (bfs(source, sink, parent))
-    {
-        int current_flow = INT32_MAX;
-        for (i = sink; i != source; i = parent[i])
-        {
-            current = parent[i];
-            current_flow = min(current_flow, cur_flows[current][i]);
+int dfs (int v, int flow, vector<int>& dest, vector<int>& ptr, int sink) {
+    if (!flow)  return 0;
+    if (v == sink)  return flow;
+    for (int & to=ptr[v]; to<flows.size(); ++to) {
+        if (dest[to] != dest[v] + 1)  continue;
+        int pushed = dfs (to, min (flow, flows[v][to] - cur_flows[v][to]), dest, ptr, sink);
+        if (pushed) {
+            cur_flows[v][to] += pushed;
+            cur_flows[to][v] -= pushed;
+            return pushed;
         }
-
-        for (i = sink; i != source; i = parent[i])
-        {
-            current = parent[i];
-            cur_flows[current][i] -= current_flow;
-            cur_flows[i][current] += current_flow;
-        }
-
-        flow += current_flow;
     }
+    return 0;
+}
 
+int maxFlow(vector<int>& ptr, int source, vector<int>& q, vector<int>& dest, int sink) {
+    int flow = 0;
+    cout << flows.size() << "PO";
+    for (;;) {
+        if (!bfs(q, dest, source, sink))  break;
+        for (int i = 0; i < ptr.size(); ++i)
+            ptr[i] = 0;
+        while (int pushed = dfs(source, INT32_MAX, dest, ptr, sink))
+            flow += pushed;
+    }
     return flow;
 }
 
 int main() {
     DataReader* dr = new DataReader("../../kdzdata/input_910_0.0.txt", "Форда-Фалкерсона");
 
-    vector<vector<int>> flows;
     vector<pair<int, int>> source_sink;
     dr->read(flows, source_sink);
 
@@ -86,15 +76,23 @@ int main() {
 
     for (int i = 0; i < flows.size(); ++i)
     {
-        vector<int> v(flows.size());
-        for (int j = 0; j < flows.size(); ++j)
-            v[j] = flows[i][j];
+//        vector<int> v(flows.size());
+//        lay.push_back(v);
 
-        cur_flows.push_back(v);
+        vector<int> a(flows.size());
+
+//        for (int j = 0; j < flows.size(); ++j)
+//            a[j] = flows[i][j];
+
+        cur_flows.push_back(a);
     }
 
-    for (int i = 0; i < flows.size(); ++i)
-        dest.push_back(INT32_MAX);
+    vector<int> dest(flows.size());
+    vector<int> ptr(flows.size());
+    vector<int> q(flows.size());
+
+//    first_not_del_edge.reserve(flows.size());
+//    dest.reserve(flows.size());
 
     double start_time = clock();
 
@@ -103,7 +101,7 @@ int main() {
         cur_source = source_sink[i].first;
         cur_sink = source_sink[i].second;
 
-        res += maxFlow(cur_source, cur_sink);
+        res += maxFlow(ptr, cur_source, q, dest, cur_sink);
     }
 
     double end_time = clock();
